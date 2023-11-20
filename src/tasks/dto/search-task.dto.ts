@@ -1,4 +1,4 @@
-import { EnTaskStatus } from '../task.model';
+import { EnTaskStatus } from '../task-status.enum';
 import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class SearchTaskDto {

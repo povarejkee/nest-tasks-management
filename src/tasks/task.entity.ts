@@ -1,8 +1,8 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { EnTaskStatus, ITask } from './task.model';
+import { EnTaskStatus } from './task-status.enum';
 
 @Entity() // указываем, что это не просто класс, а сущность db
-export class Task implements ITask {
+export class TaskEntity {
   @PrimaryGeneratedColumn('uuid') // автогенерация колонки в db
   public id: string;
 
