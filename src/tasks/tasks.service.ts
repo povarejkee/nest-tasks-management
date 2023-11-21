@@ -5,11 +5,13 @@ import { SearchTaskDto } from './dto/search-task.dto';
 import { TasksRepository } from './tasks.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TaskEntity } from './task.entity';
+import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class TasksService {
   constructor(
-    @InjectRepository(TasksRepository) private tasksRepository: TasksRepository,
+    // @InjectRepository(TasksRepository) private tasksRepository: TasksRepository,
+    private entityManager: EntityManager,
   ) {}
   // private tasks: ITask[] = [];
   // public getTasks(): ITask[] {
@@ -40,7 +42,7 @@ export class TasksService {
   // }
 
   public async getTaskById(id: string): Promise<TaskEntity> {
-    const found: TaskEntity = await this.tasksRepository.findOne({
+    const found: TaskEntity = await this.entityManager.findOne(TaskEntity, {
       where: { id },
     });
 
@@ -49,6 +51,20 @@ export class TasksService {
     }
 
     return found;
+  }
+
+  public async createTask(createTaskDto: CreateTaskDto): Promise<TaskEntity> {
+    const { title, description }: CreateTaskDto = createTaskDto;
+
+    const newTask: TaskEntity = this.entityManager.create(TaskEntity, {
+      title,
+      description,
+      status: EnTaskStatus.OPEN,
+    });
+
+    await this.entityManager.save(newTask);
+
+    return newTask;
   }
 
   // public getTaskById(id: string): ITask {

@@ -33,9 +33,15 @@ export class TasksController {
   // }
 
   @Get('/:id')
-  public async getTaskById(@Param('id') id: string): Promise<TaskEntity> {
+  public getTaskById(@Param('id') id: string): Promise<TaskEntity> {
     return this.tasksService.getTaskById(id);
   }
+
+  @Post()
+  public createTask(@Body() createTaskDto: CreateTaskDto): Promise<TaskEntity> {
+    return this.tasksService.createTask(createTaskDto);
+  }
+
   // @Get('/:id')
   // public getTaskById(@Param('id') id: string): ITask {
   //   return this.tasksService.getTaskById(id);
