@@ -3,16 +3,20 @@ import { EnTaskStatus } from './task-status.enum';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { SearchTaskDto } from './dto/search-task.dto';
 import { TaskEntity } from './task.entity';
-import { EntityManager, SelectQueryBuilder } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class TasksService {
-  constructor(private entityManager: EntityManager) {}
+  constructor(
+    @InjectRepository(TaskEntity)
+    private tasksRepository: Repository<TaskEntity>,
+  ) {}
   public async getTasks(searchTaskDto: SearchTaskDto): Promise<TaskEntity[]> {
     const { status, searchString }: SearchTaskDto = searchTaskDto;
 
     const query: SelectQueryBuilder<TaskEntity> =
-      this.entityManager.createQueryBuilder(TaskEntity, 'task');
+      this.tasksRepository.createQueryBuilder('task');
 
     if (status) {
       query.andWhere('task.status = :status', { status });
@@ -37,7 +41,7 @@ export class TasksService {
   }
 
   public async getTaskById(id: string): Promise<TaskEntity> {
-    const found: TaskEntity = await this.entityManager.findOne(TaskEntity, {
+    const found: TaskEntity = await this.tasksRepository.findOne({
       where: { id },
     });
 
@@ -51,19 +55,19 @@ export class TasksService {
   public async createTask(createTaskDto: CreateTaskDto): Promise<TaskEntity> {
     const { title, description }: CreateTaskDto = createTaskDto;
 
-    const newTask: TaskEntity = this.entityManager.create(TaskEntity, {
+    const newTask: TaskEntity = this.tasksRepository.create({
       title,
       description,
       status: EnTaskStatus.OPEN,
     });
 
-    await this.entityManager.save(newTask);
+    await this.tasksRepository.save(newTask);
 
     return newTask;
   }
 
   public deleteTask(id: string): void {
-    this.entityManager.delete(TaskEntity, id);
+    this.tasksRepository.delete(id);
   }
 
   public async updateTaskStatus(
@@ -74,7 +78,7 @@ export class TasksService {
 
     foundTask.status = status;
 
-    await this.entityManager.save(foundTask);
+    await this.tasksRepository.save(foundTask);
 
     return foundTask;
   }
