@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './user.entity';
 import { Repository } from 'typeorm';
@@ -11,7 +16,9 @@ export class AuthService {
     private usersRepository: Repository<UserEntity>,
   ) {}
 
-  public createUser(userCredentialsDto: UserCredentialsDto): void {
+  public async createUser(
+    userCredentialsDto: UserCredentialsDto,
+  ): Promise<void> {
     const { username, password }: UserCredentialsDto = userCredentialsDto;
 
     const newUser: UserEntity = this.usersRepository.create({
@@ -19,6 +26,17 @@ export class AuthService {
       password,
     });
 
-    this.usersRepository.save(newUser);
+    try {
+      await this.usersRepository.save(newUser);
+    } catch (error) {
+      // todo вынести код ошибки в отдельное место:
+      const alreadyExists: boolean = error.code === '23505';
+
+      if (alreadyExists) {
+        throw new ConflictException('Username already exists');
+      } else {
+        throw new InternalServerErrorException();
+      }
+    }
   }
 }
