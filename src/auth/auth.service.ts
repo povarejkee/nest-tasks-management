@@ -2,12 +2,13 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './user.entity';
 import { Repository } from 'typeorm';
 import { UserCredentialsDto } from './dto/user-credentials.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -20,10 +21,11 @@ export class AuthService {
     userCredentialsDto: UserCredentialsDto,
   ): Promise<void> {
     const { username, password }: UserCredentialsDto = userCredentialsDto;
+    const hashedPassword: string = await this.hashPassword(password);
 
     const newUser: UserEntity = this.usersRepository.create({
       username,
-      password,
+      password: hashedPassword,
     });
 
     try {
@@ -38,5 +40,27 @@ export class AuthService {
         throw new InternalServerErrorException();
       }
     }
+  }
+
+  // todo fix bug, refactoring
+  public async signIn(userCredentialsDto: UserCredentialsDto): Promise<string> {
+    const { username, password }: UserCredentialsDto = userCredentialsDto;
+    const user: UserEntity = await this.usersRepository.findOne({
+      where: { username },
+    });
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+      return 'success';
+    } else {
+      throw new UnauthorizedException('Please check your login credentials');
+    }
+  }
+
+  // todo вынести в core-часть:
+  private async hashPassword(password: string): Promise<string> {
+    const salt: string = await bcrypt.genSalt();
+    const hashedPassword: string = await bcrypt.hash(password, salt);
+
+    return hashedPassword;
   }
 }
