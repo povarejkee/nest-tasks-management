@@ -1,7 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { UserCredentialsDto } from './dto/user-credentials.dto';
 import { AuthService } from './auth.service';
 import { IJwtToken } from './interfaces/IJwtToken';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -17,5 +18,11 @@ export class AuthController {
     @Body() userCredentialsDto: UserCredentialsDto,
   ): Promise<IJwtToken> {
     return this.authService.signIn(userCredentialsDto);
+  }
+
+  @Post('/test')
+  @UseGuards(AuthGuard())
+  public testingJwt(@Req() req: Request): void {
+    console.log(req);
   }
 }
