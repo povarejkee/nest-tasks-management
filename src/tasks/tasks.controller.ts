@@ -26,35 +26,43 @@ export class TasksController {
   @Get()
   public getTasks(
     @Query() searchTaskDto: SearchTaskDto,
+    @GetUser() user: UserEntity,
   ): Promise<TaskEntity[]> {
-    return this.tasksService.getTasks(searchTaskDto);
+    return this.tasksService.getTasks(searchTaskDto, user);
   }
 
   @Get('/:id')
-  public getTaskById(@Param('id') id: string): Promise<TaskEntity> {
-    return this.tasksService.getTaskById(id);
+  public getTaskById(
+    @Param('id') id: string,
+    @GetUser() user: UserEntity,
+  ): Promise<TaskEntity> {
+    return this.tasksService.getTaskById(id, user);
   }
 
   @Post()
   public createTask(
     @Body() createTaskDto: CreateTaskDto,
-    @GetUser() user: UserEntity,
+    @GetUser() user: UserEntity, // нужен для того, чтобы связать добавляемую таску именно с тем юзером, который сейчас ее добавляет
   ): Promise<TaskEntity> {
     return this.tasksService.createTask(createTaskDto, user);
   }
 
   @Delete('/:id')
-  public deleteTask(@Param('id') id: string): Promise<void> {
-    return this.tasksService.deleteTask(id);
+  public deleteTask(
+    @Param('id') id: string,
+    @GetUser() user: UserEntity,
+  ): Promise<void> {
+    return this.tasksService.deleteTask(id, user);
   }
 
   @Patch('/:id/status')
   public updateTaskStatus(
     @Param('id') id: string,
     @Body() updateTaskStatusDto: UpdateTaskStatusDto,
+    @GetUser() user: UserEntity,
   ): Promise<TaskEntity> {
     const { status }: UpdateTaskStatusDto = updateTaskStatusDto;
 
-    return this.tasksService.updateTaskStatus(id, status);
+    return this.tasksService.updateTaskStatus(id, status, user);
   }
 }

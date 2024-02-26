@@ -57,6 +57,8 @@ export class AuthService {
 
     if (user && (await bcrypt.compare(password, user.password))) {
       const payload: IJwtPayload = { username };
+
+      // создаем токен и отдаем фронту:
       const accessToken: string = this.jwtService.sign(payload);
 
       return { accessToken };

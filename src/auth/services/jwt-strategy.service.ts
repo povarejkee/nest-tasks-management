@@ -6,6 +6,9 @@ import { UserEntity } from '../user.entity';
 import { Repository } from 'typeorm';
 import { IJwtPayload } from '../interfaces/IJwtPayload';
 
+// этот сервис при каждом запросе смотрит на jwt-токен, который
+// отсылает клиент, и если все ок -- пропускает дальше, возвращая сущность текущего юзера,
+// с которого шел запрос (как раз то, что нужно для работы декоратора GetUser):
 @Injectable()
 export class JwtStrategyService extends PassportStrategy(Strategy) {
   constructor(

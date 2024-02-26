@@ -12,8 +12,9 @@ export class UserEntity {
   @Column()
   public password: string;
 
-  @OneToMany((_) => TaskEntity, (task: TaskEntity): UserEntity => task.user, {
+  @OneToMany(() => TaskEntity, (task: TaskEntity): UserEntity => task.user, {
     eager: true,
-  })
+  }) // устанавливаем связь с тасками. eager: true -- при запросе на юзера делать запрос в бд за тасками,
+  // которые относятся к этому юзеру, и помещать их в ключ "tasks" в объекте юзера
   public tasks: TaskEntity[];
 }

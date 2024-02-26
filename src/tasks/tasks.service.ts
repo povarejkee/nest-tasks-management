@@ -13,11 +13,18 @@ export class TasksService {
     @InjectRepository(TaskEntity)
     private tasksRepository: Repository<TaskEntity>,
   ) {}
-  public async getTasks(searchTaskDto: SearchTaskDto): Promise<TaskEntity[]> {
+  public async getTasks(
+    searchTaskDto: SearchTaskDto,
+    user: UserEntity,
+  ): Promise<TaskEntity[]> {
     const { status, searchString }: SearchTaskDto = searchTaskDto;
 
     const query: SelectQueryBuilder<TaskEntity> =
       this.tasksRepository.createQueryBuilder('task');
+
+    // этот код означает, что будут забираться таски только по текущему юзеру.
+    // если убрать, то будут приходить все таски:
+    query.where({ user });
 
     if (status) {
       query.andWhere('task.status = :status', { status });
@@ -25,7 +32,7 @@ export class TasksService {
 
     if (searchString) {
       const queryCondition: string =
-        'LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search)';
+        '(LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search))';
 
       query.andWhere(queryCondition, { search: `%${searchString}%` });
     }
@@ -41,9 +48,9 @@ export class TasksService {
     return await query.getMany();
   }
 
-  public async getTaskById(id: string): Promise<TaskEntity> {
+  public async getTaskById(id: string, user: UserEntity): Promise<TaskEntity> {
     const found: TaskEntity = await this.tasksRepository.findOne({
-      where: { id },
+      where: { id, user },
     });
 
     if (!found) {
@@ -71,15 +78,16 @@ export class TasksService {
     return newTask;
   }
 
-  public async deleteTask(id: string): Promise<void> {
-    await this.tasksRepository.delete(id);
+  public async deleteTask(id: string, user: UserEntity): Promise<void> {
+    await this.tasksRepository.delete({ id, user });
   }
 
   public async updateTaskStatus(
     id: string,
     status: EnTaskStatus,
+    user: UserEntity,
   ): Promise<TaskEntity> {
-    const foundTask: TaskEntity = await this.getTaskById(id);
+    const foundTask: TaskEntity = await this.getTaskById(id, user);
 
     foundTask.status = status;
 
